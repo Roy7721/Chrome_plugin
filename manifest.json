@@ -1,0 +1,25 @@
+{
+    "manifest_version" : 3,
+    "name" : "YT Comment Sentiment",
+    "version" : "1.0",
+    "description" : "Analyze sentiment of Youtube comments",
+    "permissions": ["storage","activeTab"],
+    "host_permissions": [
+          "http://localhost:5000/*",
+          "http://127.0.0.1:5000/*",
+          "http://localhost:5000/*",
+          "https://www.youtube.com/*"
+      ],  
+    "action":{
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+  "service_worker": "background.js"
+}
+}

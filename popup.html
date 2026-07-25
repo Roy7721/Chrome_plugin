@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        width: 260px;
+        font-family: sans-serif;
+        padding: 12px;
+      }
+      h3 { margin: 0 0 10px 0; }
+      button {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      #status {
+        margin: 10px 0;
+        font-size: 13px;
+        color: #555;
+      }
+      .bar-row {
+        display: flex;
+        align-items: center;
+        margin: 4px 0;
+        font-size: 13px;
+      }
+      .bar-label { width: 60px; }
+      .bar-track {
+        flex: 1;
+        background: #eee;
+        border-radius: 4px;
+        overflow: hidden;
+        height: 16px;
+      }
+      .bar-fill {
+        height: 100%;
+        width: 0%;
+      }
+      .pos { background: #4caf50; }
+      .neu { background: #9e9e9e; }
+      .neg { background: #f44336; }
+      .bar-count { width: 28px; 
+        text-align: right; 
+        margin-left: 6px; }
+    </style>
+  </head>
+  <body>
+    <h3>YT Sentiment</h3>
+
+    <button id="analyzeBtn">Analyze comments</button>
+
+    <p id="status">Ready.</p>
+
+    <div id="results" style="display: none;">
+      <div class="bar-row">
+        <span class="bar-label">Positive</span>
+        <div class="bar-track"><div id="posBar" class="bar-fill pos"></div></div>
+        <span id="posCount" class="bar-count">0</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Neutral</span>
+        <div class="bar-track"><div id="neuBar" class="bar-fill neu"></div></div>
+        <span id="neuCount" class="bar-count">0</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Negative</span>
+        <div class="bar-track"><div id="negBar" class="bar-fill neg"></div></div>
+        <span id="negCount" class="bar-count">0</span>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
