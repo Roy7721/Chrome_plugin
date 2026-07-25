@@ -46,14 +46,25 @@ async function predict(comments) {
 // Turn the raw predictions into counts the popup can draw.
 function summarize(predictions) {
   const counts = { positive: 0, neutral: 0, negative: 0 };
+  const samples = { positive: [], neutral: [], negative: [] };
+  const MAX_SAMPLES = 3;
 
   for (const item of predictions) {
-    if (item.sentiment === 1) counts.positive++;
-    else if (item.sentiment === 0) counts.neutral++;
-    else if (item.sentiment === -1) counts.negative++;
+    // Map the numeric label to a name we can use as a key.
+    let key;
+    if (item.sentiment === 1) key = "positive";
+    else if (item.sentiment === 0) key = "neutral";
+    else if (item.sentiment === -1) key = "negative";
+    else continue;   // unknown label — skip it
+
+    counts[key]++;                          // tally
+
+    if (samples[key].length < MAX_SAMPLES) {
+      samples[key].push(item.comment);      // keep up to 3 real comments
+    }
   }
 
-  return { total: predictions.length, counts: counts };
+  return { total: predictions.length, counts: counts, samples: samples };
 }
 
 // The whole pipeline, start to finish.
