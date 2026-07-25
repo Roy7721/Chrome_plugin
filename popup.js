@@ -16,7 +16,7 @@ analyzeBtn.addEventListener("click", () => {
 
     analyzeBtn.disabled = true;
     analyzeBtn.textContent = "Analyzing…";
-    statusEl.textContent = "Scrolling to load comments. Meanwhile How was youe day dude?";
+    statusEl.textContent = "Scrolling to load comments…";
 
     chrome.runtime.sendMessage(
       { type: "ANALYZE", tabId: tab.id, limit: 100 },
@@ -44,12 +44,11 @@ analyzeBtn.addEventListener("click", () => {
 function render(summary) {
   const { total, counts, samples } = summary;
 
-  statusEl.textContent = "";              // clear the "scrolling…" line
-  resultsEl.style.display = "block";      // reveal the results block
+  statusEl.textContent = "";
+  resultsEl.style.display = "block";
 
-  // headline
-  const verdict = pickVerdict(counts);
-  document.getElementById("verdict").textContent = verdict.emoji + " " + verdict.text;
+  // headline — pickVerdict now returns a plain string
+  document.getElementById("verdict").textContent = pickVerdict(counts);
   document.getElementById("subhead").textContent =
     `Analyzed ${total} comment${total === 1 ? "" : "s"}`;
 
@@ -58,17 +57,17 @@ function render(summary) {
   setBar("neu", counts.neutral, total);
   setBar("neg", counts.negative, total);
 
-  // sample comments
-  renderSamples(samples);
+  // sample cards — pass counts so the badge shows the real total
+  renderSamples(samples, counts);
 }
 
-// Pick the headline based on which category has the most.
+// Pick the headline based on which category has the most. No emoji.
 function pickVerdict(counts) {
   const max = Math.max(counts.positive, counts.neutral, counts.negative);
-  if (max === 0) return { emoji: "🤔", text: "No comments found" };
-  if (max === counts.positive) return { emoji: "😊", text: "Mostly positive" };
-  if (max === counts.negative) return { emoji: "😠", text: "Mostly negative" };
-  return { emoji: "😐", text: "Mostly neutral" };
+  if (max === 0) return "No comments found";
+  if (max === counts.positive) return "Mostly positive";
+  if (max === counts.negative) return "Mostly negative";
+  return "Mostly neutral";
 }
 
 // Size one bar, set its percent and count.
@@ -79,36 +78,45 @@ function setBar(key, count, total) {
   document.getElementById(key + "Count").textContent = count;
 }
 
-// Build the sample-comment boxes from scratch.
-function renderSamples(samples) {
+// Build the sample cards from scratch.
+function renderSamples(samples, counts) {
   const container = document.getElementById("samples");
-  container.innerHTML = "";   // wipe any previous run's boxes
+  container.innerHTML = "";
 
   const groups = [
-    { key: "positive", heading: "😊 Positive examples" },
-    { key: "negative", heading: "😠 Negative examples" },
-    { key: "neutral",  heading: "😐 Neutral examples" },
+    { key: "positive", cls: "pos", label: "Positive" },
+    { key: "negative", cls: "neg", label: "Negative" },
+    { key: "neutral",  cls: "neu", label: "Neutral" },
   ];
 
   for (const group of groups) {
     const comments = samples[group.key];
-    if (comments.length === 0) continue;   // skip empty categories
+    if (comments.length === 0) continue;
 
-    const groupDiv = document.createElement("div");
-    groupDiv.className = "sample-group";
+    const card = document.createElement("div");
+    card.className = "sample-group " + group.cls;
 
-    const heading = document.createElement("div");
-    heading.className = "sample-heading";
-    heading.textContent = group.heading;
-    groupDiv.appendChild(heading);
+    const header = document.createElement("div");
+    header.className = "sample-header";
+
+    const label = document.createElement("span");
+    label.textContent = group.label;
+
+    const badge = document.createElement("span");
+    badge.className = "sample-badge";
+    badge.textContent = counts[group.key];
+
+    header.appendChild(label);
+    header.appendChild(badge);
+    card.appendChild(header);
 
     for (const comment of comments) {
       const item = document.createElement("div");
       item.className = "sample-item";
       item.textContent = comment;
-      groupDiv.appendChild(item);
+      card.appendChild(item);
     }
 
-    container.appendChild(groupDiv);
+    container.appendChild(card);
   }
 }
