@@ -15,8 +15,8 @@ analyzeBtn.addEventListener("click", () => {
     }
 
     analyzeBtn.disabled = true;
-    analyzeBtn.textContent = "Analyzing…";
-    statusEl.textContent = "Scrolling to load comments…";
+    analyzeBtn.textContent = "Analyzing...";
+    statusEl.textContent = "Scrolling to load comments. Please Give it a few seconds...";
 
     chrome.runtime.sendMessage(
       { type: "ANALYZE", tabId: tab.id, limit: 100 },
