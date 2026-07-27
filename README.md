@@ -1,0 +1,127 @@
+# YT Comment Sentiment — Chrome Extension
+
+A Chrome extension (Manifest V3) that analyzes the sentiment of a YouTube video's comments and presents an at-a-glance breakdown — positive, neutral, and negative — directly in a popup.
+
+This is the **browser client** for the [YouTube Comment Sentiment Analysis](https://github.com/Roy7721/yt_comment_analysis) MLOps project. The extension scrapes comments from the current video and sends them to a Flask prediction API, which serves a machine-learning model that classifies each comment as **−1 (negative)**, **0 (neutral)**, or **+1 (positive)**.
+
+---
+
+## Overview
+
+<!-- TODO: add a screenshot of the popup showing the sentiment breakdown. -->
+
+When a user opens a YouTube video and clicks **Analyze comments**, the extension:
+
+1. Scrolls the page to load comments,
+2. Extracts the comment text,
+3. Sends it to the prediction API,
+4. Renders the aggregate sentiment — proportions per class, plus sample comments.
+
+---
+
+## How It Works
+
+The extension follows the standard Manifest V3 separation of concerns:
+
+| Component | File | Responsibility |
+|-----------|------|----------------|
+| Popup (UI) | `popup.html`, `popup.js` | Renders the interface, triggers analysis, and draws the results |
+| Service worker | `background.js` | Orchestrates the flow; the only component with network access — sends comments to the API |
+| Content script | `content.js` | Runs inside the YouTube page and scrapes comment text on request |
+
+**Message flow:**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Popup (UI)
+    participant B as Service Worker
+    participant C as Content Script
+    participant F as Flask API
+
+    P->>B: ANALYZE
+    B->>C: SCRAPE_COMMENTS
+    Note over C: Scrolls the page<br/>and extracts comment text
+    C-->>B: comments[]
+    B->>F: POST /predict
+    Note over F: Model classifies each<br/>comment (−1 / 0 / +1)
+    F-->>B: labels[]
+    B->>B: Cache summary in chrome.storage.local
+    B-->>P: summary
+    Note over P: Renders the<br/>sentiment breakdown
+```
+
+Each arrow is a single message; solid arrows are requests, dashed arrows are the replies that travel back along the same channel. Results are cached in `chrome.storage.local`, so they persist even if the service worker goes idle.
+
+---
+
+## Features
+
+- One-click sentiment analysis of the current video's comments
+- Automatic scrolling to load up to 100 comments
+- Aggregate breakdown (positive / neutral / negative) with proportions
+- Representative sample comments for each sentiment class
+- Self-contained, lightweight popup UI
+
+---
+
+## Prerequisites
+
+This extension is a **client** and requires the backend prediction API to be running. The API, model, and full MLOps pipeline live in the main repository:
+
+➡️ **[yt_comment_analysis](https://github.com/Roy7721/yt_comment_analysis)**
+
+By default the extension calls `http://127.0.0.1:5000/predict`. Start the API locally (see the backend repository's instructions) before using the extension.
+
+---
+
+## Installation
+
+1. Clone this repository.
+2. Open Chrome and navigate to `chrome://extensions`.
+3. Enable **Developer mode** (top-right toggle).
+4. Click **Load unpacked** and select this folder.
+5. The **YT Comment Sentiment** extension will appear in your toolbar.
+
+---
+
+## Usage
+
+1. Ensure the backend API is running on `http://127.0.0.1:5000`.
+2. Open any YouTube video (`youtube.com/watch...`).
+3. Click the extension icon, then **Analyze comments**.
+4. Allow a few seconds for comments to load, then review the sentiment breakdown.
+
+---
+
+## Configuration
+
+- **API endpoint** — defined as `FLASK_URL` in `background.js`. Update it if the backend runs elsewhere.
+- **Permitted hosts** — declared under `host_permissions` in `manifest.json`. If you change the API host, update this list accordingly.
+
+---
+
+## Project Structure
+
+```
+Chrome_plugin/
+├── manifest.json     # Manifest V3 configuration, permissions, entry points
+├── popup.html        # popup markup and styles
+├── popup.js          # popup behavior and result rendering
+├── background.js     # service worker — orchestration and API calls
+└── content.js        # content script — scrapes comments from the page
+```
+
+---
+
+## Related
+
+- **Backend, model, and MLOps pipeline:** [yt_comment_analysis](https://github.com/Roy7721/yt_comment_analysis)
+
+---
+
+## Author & License
+
+**Author:** Rana Roy — [LinkedIn](https://www.linkedin.com/in/rana-roy-4771b5282/) · [GitHub](https://github.com/Roy7721)
+
+Released under the **MIT License**.
