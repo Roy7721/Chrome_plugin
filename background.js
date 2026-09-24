@@ -3,7 +3,7 @@
 // Full network access, so THIS is the file that talks to Flask.
 // Job: popup asks -> we get comments from the tab -> we POST to Flask -> we reply.
 
-const FLASK_URL = "http://127.0.0.1:5000/predict";
+const FLASK_URL = "https://yt-sentiment-api.ashysmoke-d4f578eb.koreacentral.azurecontainerapps.io/predict";
 
 // Ask the content script (inside a specific tab) to scrape comments.
 // Wrapped in a Promise so we can 'await' it like everything else.
@@ -30,17 +30,21 @@ function requestComments(tabId, limit) {
 
 // Send the comments to Flask and get back the predictions.
 async function predict(comments) {
-  const res = await fetch(FLASK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ comments: comments }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Flask returned ${res.status}`);
+  let res;
+  try {
+    res = await fetch(FLASK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comments: comments }),
+    });
+  } catch (e) {
+    throw new Error("Couldn't reach the API — it may be waking up. Try again in a few seconds.");
   }
 
-  return res.json();   // -> [{ comment, sentiment }, ...]
+  if (!res.ok) {
+    throw new Error(`API returned ${res.status}`);
+  }
+  return res.json();
 }
 
 // Turn the raw predictions into counts the popup can draw.

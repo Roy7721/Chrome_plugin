@@ -2,7 +2,11 @@
 
 A Chrome extension (Manifest V3) that analyzes the sentiment of a YouTube video's comments and presents an at-a-glance breakdown — positive, neutral, and negative — directly in a popup.
 
-This is the **browser client** for the [YouTube Comment Sentiment Analysis](https://github.com/Roy7721/yt_comment_analysis) MLOps project. The extension scrapes comments from the current video and sends them to a Flask prediction API, which serves a machine-learning model that classifies each comment as **−1 (negative)**, **0 (neutral)**, or **+1 (positive)**.
+This is the **browser client** for the [YouTube Comment Sentiment Analysis](https://github.com/Roy7721/yt_comment_analysis) MLOps project. The extension scrapes comments from the current video and sends them to a **live prediction API hosted on Azure Container Apps**, which serves a machine-learning model that classifies each comment as **−1 (negative)**, **0 (neutral)**, or **+1 (positive)**.
+
+**🟢 Live API:** <https://yt-sentiment-api.ashysmoke-d4f578eb.koreacentral.azurecontainerapps.io>
+
+No backend setup is required — install the extension and it works.
 
 ---
 
@@ -37,7 +41,7 @@ sequenceDiagram
     participant P as Popup (UI)
     participant B as Service Worker
     participant C as Content Script
-    participant F as Flask API
+    participant F as Prediction API (Azure)
 
     P->>B: ANALYZE
     B->>C: SCRAPE_COMMENTS
@@ -58,7 +62,7 @@ Each arrow is a single message; solid arrows are requests, dashed arrows are the
 ## Features
 
 - One-click sentiment analysis of the current video's comments
-- Automatic scrolling to load up to 100 comments
+- Automatic scrolling to load up to 100 comments (takes 30–60s — YouTube loads comments lazily)
 - Aggregate breakdown (positive / neutral / negative) with proportions
 - Representative sample comments for each sentiment class
 - Self-contained, lightweight popup UI
@@ -67,11 +71,17 @@ Each arrow is a single message; solid arrows are requests, dashed arrows are the
 
 ## Prerequisites
 
-This extension is a **client** and requires the backend prediction API to be running. The API, model, and full MLOps pipeline live in the main repository:
+**None — the extension works out of the box.** It calls a live prediction API:
+
+➡️ <https://yt-sentiment-api.ashysmoke-d4f578eb.koreacentral.azurecontainerapps.io>
+
+The model, API, and full MLOps pipeline live in the main repository:
 
 ➡️ **[yt_comment_analysis](https://github.com/Roy7721/yt_comment_analysis)**
 
-By default the extension calls `http://127.0.0.1:5000/predict`. Start the API locally (see the backend repository's instructions) before using the extension.
+> The API scales to zero when idle, so the first analysis after a quiet period takes a few extra seconds to wake it. Subsequent requests are immediate.
+
+To develop against a local backend instead, set `FLASK_URL` in `background.js` to `http://127.0.0.1:5000/predict` — that host is already permitted in `manifest.json`.
 
 ---
 
@@ -87,16 +97,18 @@ By default the extension calls `http://127.0.0.1:5000/predict`. Start the API lo
 
 ## Usage
 
-1. Ensure the backend API is running on `http://127.0.0.1:5000`.
-2. Open any YouTube video (`youtube.com/watch...`).
-3. Click the extension icon, then **Analyze comments**.
-4. Allow a few seconds for comments to load, then review the sentiment breakdown.
+1. Open any YouTube video (`youtube.com/watch...`).
+2. Click the extension icon, then **Analyze comments**.
+3. Wait 30–60 seconds while the extension scrolls the page to load comments.
+4. Review the sentiment breakdown.
+
+> **Seeing "Could not establish connection"?** Reload the YouTube tab. Chrome injects content scripts only when a page loads, so a tab opened before the extension was installed or reloaded has no script to talk to.
 
 ---
 
 ## Configuration
 
-- **API endpoint** — defined as `FLASK_URL` in `background.js`. Update it if the backend runs elsewhere.
+- **API endpoint** — `FLASK_URL` in `background.js`, pointing at the hosted API by default. Change it to `http://127.0.0.1:5000/predict` to develop against a local Flask instance.
 - **Permitted hosts** — declared under `host_permissions` in `manifest.json`. If you change the API host, update this list accordingly.
 
 ---
