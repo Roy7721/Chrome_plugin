@@ -12,7 +12,10 @@ No backend setup is required — install the extension and it works.
 
 ## Overview
 
-<!-- TODO: add a screenshot of the popup showing the sentiment breakdown. -->
+![Extension analysing a YouTube video's comments](https://raw.githubusercontent.com/Roy7721/yt_comment_analysis/master/assets/demo.gif)
+
+> Trimmed. Most of the elapsed time is YouTube lazy-loading the comment section, not the
+> API — once the comments are collected, prediction returns in well under a second.
 
 When a user opens a YouTube video and clicks **Analyze comments**, the extension:
 
